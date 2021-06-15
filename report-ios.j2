@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <script src="./jquery-3.6.0.min.js"></script>
+
+    <script>
+</script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-colvis-1.7.0/b-html5-1.7.0/datatables.min.css"/>
+
+
+<link rel="stylesheet" type="text/css"  href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.dataTables.min.css"/>
+ 
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-colvis-1.7.0/b-html5-1.7.0/datatables.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.print.min.js"></script>
+
+  </head>
+  <body>
+  <p>{{lookup('pipe', 'date')}}</p>
+<form name="tcol" onsubmit="return false">
+Show columns
+<input type=checkbox id="col1" onclick="toggleVis(this.name)" checked> hostname
+<input type=checkbox id="col2" onclick="toggleVis(this.name)" checked> serial
+<input type=checkbox id="col3" onclick="toggleVis(this.name)" checked> memory
+<input type=checkbox id="col4" onclick="toggleVis(this.name)" checked> cdp
+<input type=checkbox id="col5" onclick="toggleVis(this.name)" checked> mgmt ip
+<input type=checkbox id="col6" onclick="toggleVis(this.name)" checked> ios
+</form>
+    <table id="table" style="width:100%">
+    <col style="width:20%">
+      <thead>
+        <tr>
+          <th name="tcol1">Hostname</th>
+          <th name="tcol2">Serial Number</th>
+          <th name="tcol3">Free Memory</th>
+          <th name="tcol4">cdp neighbor</th>
+          <th name="tcol5">Mgmt interface IP</th>
+          <th name="tcol6">IOS Version</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for network_switch in groups['lab'] %}
+        <tr>
+          <td name="tcol1" class="bold"><a href="{{hostvars[network_switch]['ansible_net_hostname']}}.txt">{{hostvars[network_switch]['ansible_net_hostname']}}</a></td>
+          <td name="tcol2">{{hostvars[network_switch]['ansible_net_serialnum']}}</td>
+          <td name="tcol3">{{hostvars[network_switch]['ansible_net_memfree_mb']}}</td>
+          <td name="tcol4">{{hostvars[network_switch]['ansible_net_neighbors']}}</td>
+          <td name="tcol5">{{hostvars[network_switch]['ansible_net_interfaces']['Ethernet0/0']['ipv4'][0]['address']}}</td>
+          <td name="tcol6" {% if hostvars[network_switch]['ansible_net_version'] != desired_ios_version %}style="background:yellow;"{% endif %}>{{hostvars[network_switch]['ansible_net_version']}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </body>
+
+    <script>
+      var $rows = $('#table tr');
+
+      $('#search').keyup(function() {
+        var val=$.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        $rows.show().filter(function() {
+          var text=$(this).text().replace(/\s+/g, ' ');
+          return !~text.indexOf(val);
+        }).hide();
+});
+    </script>
+  <script>
+
+
+    var dt = $("#table").DataTable({
+      "paging": false, 
+      dom: 'Bfrtip',
+
+buttons: [
+  {
+            extend: 'pdfHtml5',
+            title: 'Cisco',
+            exportOptions: {
+                columns: ':visible',
+                modifier: {
+                    search: 'none'
+                }
+            }
+        },
+
+  {
+            extend: 'excelHtml5',
+            title: 'Cisco',
+            exportOptions: {
+                columns: ':visible',
+                modifier: {
+                    search: 'none'
+                }
+            }
+        },
+  {
+            extend: 'csvHtml5',
+            title: 'Cisco',
+            exportOptions: {
+                columns: ':visible',
+                modifier: {
+                    search: 'none'
+                }
+            }
+        },
+]
+
+      });
+
+$('#col1').change(function() {
+  dt.columns(0).visible(!$(this).is(':checked'));
+  console.log("log");
+});
+
+$('#col2').change(function() {
+  dt.columns(1).visible(!$(this).is(':checked'))
+})
+$('#col3').change(function() {
+  dt.columns(2).visible(!$(this).is(':checked'))
+})
+$('#col4').change(function() {
+  dt.columns(3).visible(!$(this).is(':checked'))
+})
+$('#col5').change(function() {
+  dt.columns(4).visible(!$(this).is(':checked'))
+})
+$('#col6').change(function() {
+  dt.columns(5).visible(!$(this).is(':checked'))
+})
+
+
+</script>
+
+</html>
